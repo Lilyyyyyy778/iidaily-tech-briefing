@@ -60,4 +60,5 @@ def save_result(result, date):
 
 if __name__ == "__main__":
     date_arg = sys.argv[1] if len(sys.argv) > 1 else None
-    run_daily_briefing(date_arg)
+    success = run_daily_briefing(date_arg)
+    sys.exit(0 if success else 1)
