@@ -45,6 +45,11 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Verify generated site files
+        run: |
+          test -f output/index.html
+          test -s output/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
