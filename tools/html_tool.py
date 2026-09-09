@@ -1,24 +1,54 @@
 from crewai.tools import BaseTool
 from datetime import datetime
+import json
 
 class HTMLTool(BaseTool):
     name: str = "generate_html"
     description: str = "将新闻数据生成为响应式HTML简报页面"
 
     def _run(self, briefings_str: str = "{}", date: str = "") -> str:
-        import json
         try:
             briefings = json.loads(briefings_str.replace("'", '"'))
-        except:
+        except Exception:
             briefings = {}
+
+        if isinstance(briefings, list):
+            briefings = self._group_list_by_category(briefings)
 
         if not date:
             date = datetime.now().strftime("%Y-%m-%d")
 
-        html = self._generate_html(briefings, date)
-        return html
+        return self._generate_html(briefings, date)
+
+    def _group_list_by_category(self, items):
+        grouped = {
+            "AI": [],
+            "产品发布": [],
+            "行业动态": [],
+            "融资并购": [],
+            "技术趋势": []
+        }
+
+        if not isinstance(items, list):
+            return grouped
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            category = item.get("category", "技术趋势")
+            if category not in grouped:
+                category = "技术趋势"
+            grouped[category].append(item)
+
+        return grouped
 
     def _generate_html(self, briefings, date):
+        if isinstance(briefings, list):
+            briefings = self._group_list_by_category(briefings)
+
+        if not isinstance(briefings, dict):
+            briefings = {}
+
         header = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -119,6 +149,12 @@ class HTMLTool(BaseTool):
         return header
 
     def _generate_categories(self, briefings):
+        if isinstance(briefings, list):
+            briefings = self._group_list_by_category(briefings)
+
+        if not isinstance(briefings, dict):
+            return ""
+
         html = ""
         badge_map = {
             "AI": "badge-ai",
@@ -129,13 +165,15 @@ class HTMLTool(BaseTool):
         }
 
         for category, items in briefings.items():
-            if not items:
+            if not items or not isinstance(items, list):
                 continue
             badge_class = badge_map.get(category, "badge-tech")
             html += '<div class="category">\n'
             html += '<h2 class="category-title"><span class="badge ' + badge_class + '">' + category + '</span></h2>\n'
 
             for item in items:
+                if not isinstance(item, dict):
+                    continue
                 html += '<div class="card">\n'
                 html += '<div class="card-title">' + str(item.get("title", "无标题")) + '</div>\n'
                 html += '<div class="card-summary">' + str(item.get("summary", "暂无摘要")) + '</div>\n'
