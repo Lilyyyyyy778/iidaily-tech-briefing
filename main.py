@@ -9,7 +9,6 @@ from config.settings import settings
 from agents.collector import CollectorAgent
 from agents.writer import WriterAgent
 from agents.checker import CheckerAgent
-from tools.html_tool import html_tool
 
 def run_daily_briefing(target_date=None):
     if not target_date:
@@ -46,7 +45,18 @@ def save_result(result, date):
     html_content = str(result)
 
     if not html_content.strip().startswith("<!DOCTYPE"):
-        html_content = html_tool.generate(date=date)
+        html_content = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日科技简报 - {date}</title>
+</head>
+<body>
+    <h1>每日科技简报</h1>
+    <p>本次简报已生成，但 HTML 输出格式异常，请检查上游数据。</p>
+</body>
+</html>"""
 
     output_path = os.path.join(settings.OUTPUT_DIR, settings.HTML_FILE)
     with open(output_path, "w", encoding="utf-8") as f:
