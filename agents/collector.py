@@ -2,6 +2,7 @@ from crewai import Agent
 from config.settings import settings
 from tools.search_tool import search_tool
 
+
 class CollectorAgent:
     def __init__(self):
         self.agent = Agent(
@@ -33,14 +34,20 @@ class CollectorAgent:
             - 去重：同一事件只保留最权威来源
             - 优先选择知名科技媒体
             - 输出必须是 JSON 对象，不是数组
-            - 格式必须按分类组织：
+            - 输出格式必须严格按分类组织：
               {{
-                "AI": [...],
-                "产品发布": [...],
-                "行业动态": [...],
-                "融资并购": [...],
-                "技术趋势": [...]
+                "AI": [
+                  {{"title": "...", "summary": "...", "source": "...", "link": "...", "category": "AI"}}
+                ],
+                "产品发布": [],
+                "行业动态": [],
+                "融资并购": [],
+                "技术趋势": []
               }}
+
+            如果某个分类没有内容，可以输出空数组。
+            所有条目都必须包含 category 字段，值只能是：
+            AI、产品发布、行业动态、融资并购、技术趋势
 
             使用 search_tech_news 工具搜索新闻，返回结构化数据。
             """,
