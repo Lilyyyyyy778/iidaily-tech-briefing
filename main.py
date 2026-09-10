@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from datetime import datetime, timedelta
 from crewai import Crew, Process
 
@@ -9,6 +10,7 @@ from config.settings import settings
 from agents.collector import CollectorAgent
 from agents.writer import WriterAgent
 from agents.checker import CheckerAgent
+from tools.html_tool import html_tool
 
 
 def run_daily_briefing(target_date=None):
@@ -45,9 +47,9 @@ def run_daily_briefing(target_date=None):
 def save_result(result, date):
     os.makedirs(settings.OUTPUT_DIR, exist_ok=True)
 
-    html_content = str(result).strip()
+    html_content = _extract_html_content(result, date)
 
-    if not html_content.startswith("<!DOCTYPE") and not html_content.startswith("<html"):
+    if not html_content:
         html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -103,6 +105,57 @@ def save_result(result, date):
         f.write(html_content)
 
     print(f"已保存至: {output_path}")
+
+
+def _is_html(content):
+    if not isinstance(content, str):
+        return False
+    stripped = content.strip().lower()
+    return stripped.startswith("<!doctype") or stripped.startswith("<html")
+
+
+def _to_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    return str(value).strip()
+
+
+def _extract_html_content(result, date):
+    candidates = [_to_text(result)]
+
+    raw = _to_text(getattr(result, "raw", ""))
+    if raw:
+        candidates.append(raw)
+
+    tasks_output = getattr(result, "tasks_output", None)
+    if isinstance(tasks_output, list):
+        for task_output in tasks_output:
+            task_raw = _to_text(getattr(task_output, "raw", ""))
+            if task_raw:
+                candidates.append(task_raw)
+            task_text = _to_text(task_output)
+            if task_text:
+                candidates.append(task_text)
+
+    for text in candidates:
+        if _is_html(text):
+            return text
+
+    for text in candidates:
+        parsed = html_tool._parse_briefings(text)
+        if isinstance(parsed, dict) and any(isinstance(v, list) for v in parsed.values()):
+            return html_tool._generate_html(parsed, date)
+
+        try:
+            parsed_json = json.loads(text)
+        except Exception:
+            continue
+        if isinstance(parsed_json, dict):
+            return html_tool._generate_html(parsed_json, date)
+
+    return ""
 
 
 if __name__ == "__main__":
