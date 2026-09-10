@@ -14,7 +14,7 @@
 ## 技术栈
 
 - Agent 框架: CrewAI 1.x
-- LLM: DeepSeek-V3 (通过环境变量配置)
+- LLM: DeepSeek-V4 (通过环境变量配置)
 - 搜索: Serper API
 - 部署: GitHub Actions -> GitHub Pages
 
