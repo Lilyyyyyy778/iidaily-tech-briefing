@@ -1,6 +1,11 @@
 name: Daily Tech Briefing
 
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
   schedule:
     - cron: '0 22 * * *'
   workflow_dispatch:

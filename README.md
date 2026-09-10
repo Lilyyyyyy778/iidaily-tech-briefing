@@ -67,7 +67,11 @@ python main.py 2026-09-09
 
 ## 自动化部署
 
-工作流文件为 `.github/workflows/daily.yml`，每次手动运行或定时运行后，会自动生成 `output/index.html` 并部署到 GitHub Pages。
+工作流文件为 `.github/workflows/daily.yml`，以下三种情况都会自动生成 `output/index.html` 并部署到 GitHub Pages：
+
+- 推送到 `main` 分支（代码有改动时）
+- 每天定时运行（`0 22 * * *` UTC）
+- 在 Actions 页面手动 `Run workflow`
 
 首次配置 GitHub 仓库：
 
